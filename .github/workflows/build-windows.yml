@@ -44,10 +44,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 20
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Use PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -73,10 +73,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 20
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Read version
         id: version
@@ -90,7 +90,6 @@ jobs:
       - name: Assemble the bundled runtime
         working-directory: installer
         run: |
-          npm install --no-fund --no-audit
           node build-runtime.js --payload
           node verify-runtime.js
 
