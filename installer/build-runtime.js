@@ -205,14 +205,26 @@ async function buildComponent(component) {
     // Playwright is installed with npm so its dependency tree comes along.
     if (spec.npmInstall) {
         log(`Installing ${spec.label} ${spec.version} into the runtime…`);
+        // Node's child_process hardened its handling of Windows .cmd/.bat
+        // shims (CVE-2024-27980, fixed in all current Node LTS releases):
+        // spawning npm.cmd directly, without shell: true, now fails before
+        // the process even starts — no npm output, just a generic error.
+        // shell: true on Windows restores the old, working behaviour.
         const result = spawnSync(
             process.platform === 'win32' ? 'npm.cmd' : 'npm',
             ['install', '--prefix', target, '--no-save', '--omit=dev',
                 `playwright@${spec.version}`, `playwright-core@${spec.version}`],
-            { stdio: 'inherit', env: { ...process.env, PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1' } },
+            {
+                stdio: 'inherit',
+                shell: process.platform === 'win32',
+                env: { ...process.env, PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1' },
+            },
         );
+        if (result.error) {
+            throw new Error(`npm install failed for ${spec.label}: ${result.error.message}`);
+        }
         if (result.status !== 0) {
-            throw new Error(`npm install failed for ${spec.label}`);
+            throw new Error(`npm install failed for ${spec.label} (exit code ${result.status})`);
         }
         return { id: component, ...spec, path: path.relative(path.join(ROOT, 'windows-app'), target) };
     }
