@@ -63,7 +63,11 @@ jobs:
 
       - name: Worker test suite (Node)
         working-directory: windows-app
-        run: node --test tests/unit/
+        # A bare directory path makes `node --test` try to require() it as a
+        # module rather than discover files inside it, and fails with
+        # MODULE_NOT_FOUND. A glob against the actual test files is what
+        # triggers Node's real test discovery.
+        run: node --test tests/unit/*.test.js
 
   build:
     needs: test
