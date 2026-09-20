@@ -10,6 +10,17 @@ name: Build Windows installer
 #   WIN_CSC_LINK          base64 of the .pfx, or a URL to it
 #   WIN_CSC_KEY_PASSWORD  the .pfx password
 # Without them the build still succeeds, but the .exe is unsigned.
+#
+# Two jobs:
+#   test  — the offline PHP/Node suites, on Linux. These exercise the PHP
+#           control plane, which is what actually runs in production
+#           (php-app on a Linux web server per the README). Running them on
+#           Linux also matches the POSIX file-permission assertions the media
+#           security tests make; those assertions are meaningless on
+#           Windows/NTFS and would fail there regardless of code correctness.
+#   build — assembles the bundled runtime and builds the Windows installer.
+#           Only this half needs windows-latest, and it only starts once the
+#           tests above have passed.
 
 on:
   workflow_dispatch:
@@ -26,7 +37,36 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Use PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, sqlite3, mbstring, fileinfo, zip
+          coverage: none
+
+      - name: Server test suite (PHP)
+        run: |
+          php --version
+          php tests/php/run.php
+
+      - name: Worker test suite (Node)
+        working-directory: windows-app
+        run: node --test tests/unit/
+
   build:
+    needs: test
     runs-on: windows-latest
     timeout-minutes: 60
 
@@ -37,32 +77,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
-      - name: Use PHP 8.2
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: pdo_mysql, pdo_sqlite, sqlite3, mbstring, fileinfo, zip
-          coverage: none
-          
+
       - name: Read version
         id: version
         shell: pwsh
         run: |
           $pkg = Get-Content windows-app/package.json -Raw | ConvertFrom-Json
           "value=$($pkg.version)" >> $env:GITHUB_OUTPUT
-
-      # ---- offline test suites: fail fast before spending time on a build ----
-
-      - name: Server test suite (PHP)
-        shell: pwsh
-        run: |
-          php --version
-          php tests/php/run.php
-
-      - name: Worker test suite (Node)
-        working-directory: windows-app
-        run: node --test tests/unit/
 
       # ---- bundled runtime: Node, Playwright, Chromium, FFmpeg ----
 
