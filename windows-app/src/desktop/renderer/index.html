@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LinkEasy Publisher</title>
+<link rel="stylesheet" href="/styles.css">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:;">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <div>
+        <div class="brand__name">LinkEasy</div>
+        <div class="brand__sub">Publisher</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav__item is-active" data-view="overview">Overview</button>
+      <button class="nav__item" data-view="accounts">Accounts &amp; Pages</button>
+      <button class="nav__item" data-view="jobs">Activity</button>
+      <button class="nav__item" data-view="runtime">Components</button>
+      <button class="nav__item" data-view="logs">Logs</button>
+      <button class="nav__item" data-view="settings">Settings</button>
+    </nav>
+
+    <div class="sidebar__foot">
+      <div class="status" id="side-status">
+        <span class="dot" id="side-dot" data-state="OFFLINE"></span>
+        <span id="side-state">Starting…</span>
+      </div>
+      <div class="muted small" id="side-version">—</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- First run -->
+    <section class="view" id="view-welcome">
+      <div class="hero">
+        <h1>Connect this PC to your workspace</h1>
+        <p class="muted">
+          LinkEasy Publisher runs the browser work on your machine. You sign in to Facebook yourself in the
+          browser window it opens — LinkEasy never asks for, stores or sends your Facebook password.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>1 · Your workspace</h2>
+        <label class="field">
+          <span>Workspace address</span>
+          <input type="url" id="enrol-server" placeholder="https://your-linkeasy-server.example" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="enrol-email" placeholder="you@example.com" autocomplete="username">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="enrol-password" placeholder="Your dashboard password" autocomplete="current-password">
+          <small class="muted">
+            Used once, in memory, to obtain a machine token. It is never written to disk.
+          </small>
+        </label>
+        <label class="field">
+          <span>Machine name (shown in your dashboard)</span>
+          <input type="text" id="enrol-name" placeholder="DESKTOP-OFFICE">
+        </label>
+        <div class="row">
+          <button class="btn btn--primary" id="enrol-submit">Connect this PC</button>
+          <span class="muted small">Nothing is published until you approve Pages in your dashboard.</span>
+        </div>
+        <div class="alert alert--error hidden" id="enrol-error"></div>
+      </div>
+
+      <div class="card">
+        <h2>2 · What runs on this machine</h2>
+        <ul class="checks" id="welcome-runtime"><li class="muted">Checking components…</li></ul>
+      </div>
+    </section>
+
+    <!-- Overview -->
+    <section class="view hidden" id="view-overview">
+      <div class="view__head">
+        <h1>Overview</h1>
+        <div class="row">
+          <button class="btn" id="btn-pause">Pause</button>
+          <button class="btn btn--ghost" id="btn-heartbeat">Send heartbeat</button>
+          <button class="btn btn--ghost" id="btn-open-dashboard">Open web dashboard</button>
+        </div>
+      </div>
+
+      <div class="grid grid--stats">
+        <div class="stat"><div class="stat__label">Worker</div><div class="stat__value" id="stat-state">—</div></div>
+        <div class="stat"><div class="stat__label">Active jobs</div><div class="stat__value" id="stat-active">0</div></div>
+        <div class="stat"><div class="stat__label">Browsers open</div><div class="stat__value" id="stat-browsers">0</div></div>
+        <div class="stat"><div class="stat__label">Published (this run)</div><div class="stat__value" id="stat-published">0</div></div>
+        <div class="stat"><div class="stat__label">Failed (this run)</div><div class="stat__value" id="stat-failed">0</div></div>
+        <div class="stat"><div class="stat__label">Uptime</div><div class="stat__value" id="stat-uptime">—</div></div>
+      </div>
+
+      <div class="card" id="attention-card" hidden>
+        <h2 class="warn-title">Action needed</h2>
+        <p id="attention-body"></p>
+        <div class="row">
+          <button class="btn btn--primary" id="btn-focus-browser">Open the browser window</button>
+          <button class="btn" id="btn-resume">Resume when done</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Running now</h2>
+        <ul class="list" id="active-jobs"><li class="muted">Nothing running.</li></ul>
+      </div>
+
+      <div class="card">
+        <h2>Recent notifications</h2>
+        <ul class="list" id="notifications"><li class="muted">Nothing yet.</li></ul>
+      </div>
+    </section>
+
+    <!-- Accounts & Pages -->
+    <section class="view hidden" id="view-accounts">
+      <div class="view__head">
+        <h1>Accounts &amp; Pages</h1>
+        <button class="btn btn--ghost" id="btn-refresh-accounts">Refresh</button>
+      </div>
+      <p class="muted">
+        Sign-in happens in a real browser window. Complete any security check Facebook shows yourself —
+        LinkEasy never solves or bypasses those checks.
+      </p>
+
+      <div class="card">
+        <h2>Browser profile on this PC</h2>
+        <ul class="list" id="profiles"><li class="muted">No profiles yet.</li></ul>
+        <div class="row">
+          <label class="field field--inline">
+            <span>Account id</span>
+            <input type="text" id="connect-account-id" inputmode="numeric" placeholder="e.g. 3">
+          </label>
+          <button class="btn btn--primary" id="btn-connect-account">Sign in to Facebook</button>
+        </div>
+        <p class="muted small">
+          Pages are discovered after sign-in and appear in the web dashboard, where you choose which ones to publish to.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Browser limits</h2>
+        <ul class="list" id="limits"><li class="muted">—</li></ul>
+        <p class="muted small">
+          One signed-in browser serves every Page of that account. These limits come from your dashboard and keep
+          memory use predictable on this machine.
+        </p>
+      </div>
+    </section>
+
+    <!-- Activity -->
+    <section class="view hidden" id="view-jobs">
+      <div class="view__head">
+        <h1>Activity</h1>
+        <span class="muted small">The full job history lives in your web dashboard.</span>
+      </div>
+      <ul class="list list--activity" id="job-log"><li class="muted">Nothing yet.</li></ul>
+    </section>
+
+    <!-- Components -->
+    <section class="view hidden" id="view-runtime">
+      <div class="view__head">
+        <h1>Components</h1>
+        <div class="row">
+          <button class="btn btn--ghost" id="btn-verify">Verify again</button>
+          <button class="btn btn--primary" id="btn-repair">Repair</button>
+        </div>
+      </div>
+      <p class="muted">
+        Everything LinkEasy needs — the Node runtime, Playwright, Chromium and FFmpeg — is bundled. You never
+        install these yourself.
+      </p>
+      <div class="card">
+        <ul class="checks" id="runtime-list"><li class="muted">Checking…</li></ul>
+      </div>
+    </section>
+
+    <!-- Logs -->
+    <section class="view hidden" id="view-logs">
+      <div class="view__head">
+        <h1>Logs</h1>
+        <div class="row">
+          <select id="log-channel" class="select">
+            <option value="app">Application</option>
+            <option value="worker">Worker</option>
+            <option value="browser">Browser</option>
+            <option value="media">Media</option>
+            <option value="errors">Errors</option>
+          </select>
+          <button class="btn btn--ghost" id="btn-open-logs">Open logs folder</button>
+        </div>
+      </div>
+      <pre class="logbox" id="logbox">Loading…</pre>
+      <p class="muted small">Passwords, cookies and tokens are removed before anything is written here.</p>
+    </section>
+
+    <!-- Settings -->
+    <section class="view hidden" id="view-settings">
+      <div class="view__head">
+        <h1>Settings</h1>
+        <button class="btn btn--ghost" id="btn-open-data">Open data folder</button>
+      </div>
+
+      <div class="card">
+        <h2>Local behaviour</h2>
+        <label class="switch"><input type="checkbox" id="set-startup"> Start with Windows</label>
+        <label class="switch"><input type="checkbox" id="set-tray"> Keep running in the tray when the window closes</label>
+        <label class="switch"><input type="checkbox" id="set-cleanup"> Delete media from this PC after a post is published</label>
+        <label class="switch"><input type="checkbox" id="set-screenshots"> Capture a screenshot when a job fails</label>
+        <label class="switch"><input type="checkbox" id="set-verbose"> Verbose logs (for support)</label>
+        <label class="switch"><input type="checkbox" id="set-updates"> Keep the application up to date automatically</label>
+      </div>
+
+      <div class="card">
+        <h2>Updates</h2>
+        <p class="muted" id="update-state">Not checked yet.</p>
+        <div class="row">
+          <button class="btn" id="btn-check-updates">Check for updates</button>
+          <button class="btn btn--primary" id="btn-install-update" disabled>Install now</button>
+        </div>
+        <p class="muted small">
+          Only signed builds from your own update feed are installed, and never while a post is publishing.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>This PC</h2>
+        <ul class="list" id="about"><li class="muted">—</li></ul>
+        <div class="row">
+          <button class="btn btn--danger" id="btn-signout">Disconnect this PC</button>
+          <button class="btn btn--danger" id="btn-quit">Quit LinkEasy Publisher</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

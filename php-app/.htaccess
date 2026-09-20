@@ -1,0 +1,2 @@
+# Deny all direct web access to the application internals.
+Require all denied

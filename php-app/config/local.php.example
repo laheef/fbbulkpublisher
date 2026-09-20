@@ -1,0 +1,26 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Optional local overrides. Copy to config/local.php — it is merged over
+ * config/config.php and should never be committed.
+ */
+
+return [
+    'app' => [
+        'env'   => 'production',
+        'debug' => false,
+        'url'   => 'https://publisher.example.com',
+        'key'   => 'change-me-to-a-64-character-random-string',
+    ],
+    'database' => [
+        'driver'   => 'mysql',
+        'host'     => '127.0.0.1',
+        'database' => 'linkeasy',
+        'username' => 'linkeasy',
+        'password' => 'change-me',
+    ],
+    'session' => [
+        'secure' => true,
+    ],
+];

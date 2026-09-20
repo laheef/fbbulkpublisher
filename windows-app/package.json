@@ -1,0 +1,85 @@
+{
+  "name": "linkeasy-publisher",
+  "productName": "LinkEasy Publisher",
+  "version": "1.0.0",
+  "description": "LinkEasy Publisher — Windows desktop client and Playwright automation runtime for an authorised LinkEasy workspace.",
+  "main": "src/desktop/main.js",
+  "author": "LinkEasy",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "worker": "node src/worker/cli.js",
+    "verify-runtime": "node scripts/verify-runtime.js",
+    "repair": "node scripts/repair.js",
+    "diagnostics": "node scripts/diagnostics.js",
+    "test": "node --test tests/",
+    "fetch-runtime": "node installer/build-runtime.js",
+    "dist:installer": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable",
+    "dist": "npm run dist:installer && npm run dist:portable"
+  },
+  "dependencies": {
+    "playwright": "1.49.0",
+    "electron-updater": "6.3.9",
+    "extract-zip": "2.0.1"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.linkeasy.publisher",
+    "productName": "LinkEasy Publisher",
+    "copyright": "Copyright © LinkEasy",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      { "from": "runtime", "to": "runtime", "filter": ["**/*"] },
+      { "from": "worker", "to": "worker", "filter": ["**/*"] }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "artifactName": "LinkEasyPublisher-${version}-${arch}-${target}.exe",
+      "signAndEditExecutable": true,
+      "publisherName": "LinkEasy"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LinkEasy Publisher",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "include": "installer/nsis-extras.nsh",
+      "artifactName": "LinkEasyFacebookPublisherSetup.exe"
+    },
+    "portable": {
+      "artifactName": "LinkEasyPublisherPortable.exe"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/linkeasy-publisher/"
+      }
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
