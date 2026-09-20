@@ -37,7 +37,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
+          
+      - name: Use PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, sqlite3, mbstring, fileinfo, zip
+          coverage: none
+          
       - name: Read version
         id: version
         shell: pwsh
