@@ -42,11 +42,19 @@ foreach (['storage/framework', 'storage/logs', 'storage/uploads', 'storage/expor
 /** A fresh, empty schema. */
 function db_reset(): void
 {
+    // Drop the old connection *before* deleting the file. On Linux, unlinking
+    // a file that's still open elsewhere is harmless (POSIX keeps the inode
+    // alive until every handle closes), so this ordering never mattered there.
+    // On Windows/NTFS the file is locked while a handle is open, so deleting
+    // it first silently fails and the "reset" reuses the old file, leaking
+    // rows from a previous test into the next one.
+    App\Core\Database::reset();
+
     $path = (string) App\Core\Config::str('database.sqlite_path', '');
     if ($path !== '' && file_exists($path)) {
         @unlink($path);
     }
-    App\Core\Database::reset();
+
     App\Core\SqliteSchema::install(App\Core\Database::instance());
 }
 

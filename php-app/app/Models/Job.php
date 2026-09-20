@@ -518,14 +518,35 @@ final class Job extends Model
         return true;
     }
 
-    /** Promote SCHEDULED jobs whose time has arrived into the claimable queue. */
+    /**
+     * Promote SCHEDULED jobs whose time has arrived into the claimable queue.
+     *
+     * UPDATE ... LIMIT is MySQL-only syntax; standard SQLite rejects it outright.
+     * Selecting the candidate ids first and updating by id keeps this portable
+     * across both drivers and still bounds the batch size.
+     */
     public static function releaseDueScheduled(int $limit = 200): int
     {
-        return static::db()->query(
+        $db = static::db();
+        $now = Clock::nowString();
+
+        $ids = $db->select(
+            "SELECT id FROM jobs WHERE status = 'SCHEDULED' AND scheduled_at <= ?
+             ORDER BY scheduled_at ASC, id ASC LIMIT " . (int) $limit,
+            [$now]
+        );
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        $idList = array_map(static fn(array $row): int => (int) $row['id'], $ids);
+        $placeholders = implode(',', array_fill(0, count($idList), '?'));
+
+        return $db->query(
             "UPDATE jobs SET status = 'QUEUED', stage = 'queued', next_attempt_at = COALESCE(next_attempt_at, scheduled_at)
-             WHERE status = 'SCHEDULED' AND scheduled_at <= ?
-             LIMIT " . (int) $limit,
-            [Clock::nowString()]
+             WHERE id IN ({$placeholders})",
+            $idList
         )->rowCount();
     }
 
