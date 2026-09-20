@@ -13,7 +13,7 @@
     "verify-runtime": "node scripts/verify-runtime.js",
     "repair": "node scripts/repair.js",
     "diagnostics": "node scripts/diagnostics.js",
-    "test": "node --test tests/",
+    "test": "node --test tests/**/*.test.js",
     "fetch-runtime": "node installer/build-runtime.js",
     "dist:installer": "electron-builder --win nsis",
     "dist:portable": "electron-builder --win portable",
